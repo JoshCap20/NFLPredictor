@@ -84,10 +84,10 @@ def evaluate_game(home_team: str, away_team: str, model: any, data: pd.DataFrame
 
     winner = home_team if predicted_winner else away_team
     win_prob = predicted_proba[-1] if predicted_winner else predicted_proba[0]
-    # print(f'[{away_team} @ {home_team}]: {winner} ({win_prob:.2f})')
+    
     return winner, win_prob
 
-def run_weekly_predictions(year: int, week: int):
+def run_weekly_predictions(year: int, week: int) -> pd.DataFrame:
     """
     Run weekly predictions for a given year and week.
     """
@@ -98,9 +98,11 @@ def run_weekly_predictions(year: int, week: int):
     # Load model
     model = load_model()
     
+    # Run predictions
     output_df = games.copy()
     output_df['predicted_winner'], output_df['win_probability'] = zip(*games.apply(lambda row: evaluate_game(row['home_team'], row['away_team'], model, pbp_data), axis=1))
     
+    # Output predictions
     output_df.to_csv(f'./data/weekly_predictions_{year}_{week}.csv', index=False)
     return output_df
 
