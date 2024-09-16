@@ -1,0 +1,7 @@
+nflfastpy
+pandas
+numpy
+matplotlib
+scikit-learn 
+ipykernel
+seaborn
