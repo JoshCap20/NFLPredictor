@@ -23,11 +23,15 @@ def load_pbp_data(year: int) -> pd.DataFrame:
     return get_pbp_data(year)
 
 
-def load_model() -> any:
+def load_model(model_name: str) -> any:
     """
     Load model from disk. Assumes model and model directory exist.
     """
-    return joblib.load("./models/clf.pkl")
+    if model_name not in ["clf", "ensemble", "stacking"]:
+        raise ValueError(
+            "Invalid model name. Must be one of ['clf', 'ensemble', 'stacking']"
+        )
+    return joblib.load(f"./models/{model_name}.joblib")
 
 
 def evaluate_game(home_team: str, away_team: str, model: any, data: pd.DataFrame):
@@ -96,7 +100,9 @@ def evaluate_game(home_team: str, away_team: str, model: any, data: pd.DataFrame
     return winner, win_prob
 
 
-def run_weekly_predictions(year: int, week: int) -> pd.DataFrame:
+def run_weekly_predictions(
+    year: int, week: int, model_name: str = "clf"
+) -> pd.DataFrame:
     """
     Run weekly predictions for a given year and week.
     """
@@ -105,7 +111,7 @@ def run_weekly_predictions(year: int, week: int) -> pd.DataFrame:
     pbp_data: pd.DataFrame = load_pbp_data(year)
 
     # Load model
-    model = load_model()
+    model = load_model(model_name)
 
     # Run predictions
     output_df = games.copy()
