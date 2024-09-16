@@ -1,26 +1,34 @@
+"""
+Utility functions for running weekly predictions, used in `predict.ipynb`.
+"""
+
 from data import get_season_schedule, get_pbp_data
 import pandas as pd
 import numpy as np
 import joblib
 import itertools
-    
+
+
 def load_weekly_games(year: int, week: int) -> pd.DataFrame:
     """
     Load weekly schedule for a given week and year.
     """
-    return get_season_schedule([year]).query(f'week == {week}')
+    return get_season_schedule([year]).query(f"week == {week}")
+
 
 def load_pbp_data(year: int) -> pd.DataFrame:
     """
     Load play by play data for a given year.
     """
     return get_pbp_data(year)
-    
+
+
 def load_model() -> any:
     """
     Load model from disk. Assumes model and model directory exist.
     """
-    return joblib.load('./models/clf.pkl')
+    return joblib.load("./models/clf.pkl")
+
 
 def evaluate_game(home_team: str, away_team: str, model: any, data: pd.DataFrame):
     def ewma(data, window):
@@ -84,8 +92,9 @@ def evaluate_game(home_team: str, away_team: str, model: any, data: pd.DataFrame
 
     winner = home_team if predicted_winner else away_team
     win_prob = predicted_proba[-1] if predicted_winner else predicted_proba[0]
-    
+
     return winner, win_prob
+
 
 def run_weekly_predictions(year: int, week: int) -> pd.DataFrame:
     """
@@ -94,18 +103,26 @@ def run_weekly_predictions(year: int, week: int) -> pd.DataFrame:
     # Load data
     games: pd.DataFrame = load_weekly_games(year, week)
     pbp_data: pd.DataFrame = load_pbp_data(year)
-    
+
     # Load model
     model = load_model()
-    
+
     # Run predictions
     output_df = games.copy()
-    output_df['predicted_winner'], output_df['win_probability'] = zip(*games.apply(lambda row: evaluate_game(row['home_team'], row['away_team'], model, pbp_data), axis=1))
-    
+    output_df["predicted_winner"], output_df["win_probability"] = zip(
+        *games.apply(
+            lambda row: evaluate_game(
+                row["home_team"], row["away_team"], model, pbp_data
+            ),
+            axis=1,
+        )
+    )
+
     # Output predictions
-    output_df.to_csv(f'./data/weekly_predictions_{year}_{week}.csv', index=False)
+    output_df.to_csv(f"./data/weekly_predictions_{year}_{week}.csv", index=False)
     return output_df
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     results = run_weekly_predictions(2024, 3)
     print(results)
